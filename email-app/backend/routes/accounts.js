@@ -16,6 +16,9 @@ const router = express.Router();
     if (!cols.some(col => col.name === 'sendgrid_api_key')) {
       db.exec("ALTER TABLE email_accounts ADD COLUMN sendgrid_api_key TEXT");
     }
+    if (!cols.some(col => col.name === 'brevo_api_key')) {
+      db.exec("ALTER TABLE email_accounts ADD COLUMN brevo_api_key TEXT");
+    }
   } catch (err) {
     console.error('Migration error for email_accounts:', err.message);
   }
@@ -27,7 +30,8 @@ router.get('/', (req, res) => {
     `SELECT id, user_id, email, name, imap_host, imap_port, imap_secure,
             smtp_host, smtp_port, smtp_secure, is_active, created_at,
             CASE WHEN resend_api_key IS NOT NULL AND resend_api_key != '' THEN 1 ELSE 0 END as has_resend,
-            CASE WHEN sendgrid_api_key IS NOT NULL AND sendgrid_api_key != '' THEN 1 ELSE 0 END as has_sendgrid
+            CASE WHEN sendgrid_api_key IS NOT NULL AND sendgrid_api_key != '' THEN 1 ELSE 0 END as has_sendgrid,
+            CASE WHEN brevo_api_key IS NOT NULL AND brevo_api_key != '' THEN 1 ELSE 0 END as has_brevo
      FROM email_accounts WHERE user_id = ? ORDER BY created_at DESC`
   ).all(req.user.id);
 
@@ -36,15 +40,15 @@ router.get('/', (req, res) => {
 
 // POST /api/accounts - Add new account
 router.post('/', (req, res) => {
-  const { email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, sendgrid_api_key } = req.body;
+  const { email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, sendgrid_api_key, brevo_api_key } = req.body;
 
   if (!email || !imap_host || !imap_port || !smtp_host || !smtp_port) {
     return res.status(400).json({ error: 'Missing required fields: email, imap_host, imap_port, smtp_host, smtp_port' });
   }
 
   const result = db.prepare(
-    `INSERT INTO email_accounts (user_id, email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, sendgrid_api_key, is_active)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+    `INSERT INTO email_accounts (user_id, email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, sendgrid_api_key, brevo_api_key, is_active)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   ).run(
     req.user.id, email,
     name || null,
@@ -52,7 +56,8 @@ router.post('/', (req, res) => {
     smtp_host, smtp_port, smtp_secure !== undefined ? smtp_secure : 1,
     password || null,
     resend_api_key || null,
-    sendgrid_api_key || null
+    sendgrid_api_key || null,
+    brevo_api_key || null
   );
 
   // Set all other accounts to inactive
@@ -62,7 +67,8 @@ router.post('/', (req, res) => {
     `SELECT id, user_id, email, name, imap_host, imap_port, imap_secure,
             smtp_host, smtp_port, smtp_secure, is_active, created_at,
             CASE WHEN resend_api_key IS NOT NULL AND resend_api_key != '' THEN 1 ELSE 0 END as has_resend,
-            CASE WHEN sendgrid_api_key IS NOT NULL AND sendgrid_api_key != '' THEN 1 ELSE 0 END as has_sendgrid
+            CASE WHEN sendgrid_api_key IS NOT NULL AND sendgrid_api_key != '' THEN 1 ELSE 0 END as has_sendgrid,
+            CASE WHEN brevo_api_key IS NOT NULL AND brevo_api_key != '' THEN 1 ELSE 0 END as has_brevo
      FROM email_accounts WHERE id = ?`
   ).get(result.lastInsertRowid);
 

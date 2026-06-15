@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const db = require('../database');
+const { sendWithBrevo } = require('../services/brevo');
 const { sendWithSendGrid } = require('../services/sendgrid');
 const { sendWithResend } = require('../services/resend');
 
@@ -14,17 +15,36 @@ function getActiveAccount(userId) {
 }
 
 /**
- * 统一发送邮件：SendGrid → Resend → SMTP 三级回退
- * SendGrid: 只需验证单个邮箱，无需域名 (100封/天免费)
+ * 统一发送邮件：Brevo → SendGrid → Resend → SMTP 四级回退
+ * Brevo:    只需验证邮箱地址，无需域名 (300封/天免费)  ⬅ 推荐
+ * SendGrid: 只需验证单个邮箱 (100封/天免费)
  * Resend:   需验证域名 DNS
  * SMTP:     需邮箱密码/授权码
  */
 async function sendEmail(account, { to, subject, body, cc, bcc, replyTo, inReplyTo, references }) {
-  const from = account.name
-    ? `${account.name} <${account.email}>`
-    : account.email;
+  const from = account.email;
+  const fromName = account.name || '';
 
-  // 第一优先：SendGrid（最简单，无需域名）
+  // 第一优先：Brevo（最简单，无需域名，300封/天）
+  if (account.brevo_api_key) {
+    try {
+      const result = await sendWithBrevo({
+        brevoApiKey: account.brevo_api_key,
+        from,
+        fromName,
+        to,
+        subject,
+        text: body,
+        cc,
+        bcc,
+      });
+      return { provider: 'brevo', messageId: result.messageId };
+    } catch (brevoErr) {
+      console.warn('Brevo 发送失败，回退到 SendGrid:', brevoErr.message);
+    }
+  }
+
+  // 第二优先：SendGrid
   if (account.sendgrid_api_key) {
     try {
       const result = await sendWithSendGrid({
@@ -42,12 +62,15 @@ async function sendEmail(account, { to, subject, body, cc, bcc, replyTo, inReply
     }
   }
 
-  // 第二优先：Resend（需域名验证）
+  // 第三优先：Resend（需域名验证）
   if (account.resend_api_key) {
     try {
+      const resendFrom = account.name
+        ? `${account.name} <${account.email}>`
+        : account.email;
       const result = await sendWithResend({
         resendApiKey: account.resend_api_key,
-        from,
+        from: resendFrom,
         to,
         subject,
         text: body,

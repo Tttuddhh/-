@@ -15,6 +15,7 @@ function AddAccountModal({ onClose, onSuccess }) {
     smtp_host: '',
     smtp_port: '587',
     name: '',
+    brevo_api_key: '',
     sendgrid_api_key: '',
     resend_api_key: '',
   });
@@ -58,6 +59,7 @@ function AddAccountModal({ onClose, onSuccess }) {
         smtp_host: form.smtp_host.trim() || undefined,
         smtp_port: form.smtp_port ? parseInt(form.smtp_port, 10) : undefined,
         name: form.name.trim() || undefined,
+        brevo_api_key: form.brevo_api_key.trim() || undefined,
         sendgrid_api_key: form.sendgrid_api_key.trim() || undefined,
         resend_api_key: form.resend_api_key.trim() || undefined,
       });
@@ -154,8 +156,26 @@ function AddAccountModal({ onClose, onSuccess }) {
                   <div className="modal__advanced-section">
                     <span className="modal__advanced-label modal__advanced-label--recommend">推荐</span>
                     <div className="modal__advanced-hint">
-                      使用 <strong>SendGrid</strong> 发送邮件——只需验证单个邮箱地址（点击验证邮件即可），无需配置域名 DNS。
-                      免费 100 封/天。在{' '}
+                      使用 <strong>Brevo</strong> 发送邮件——只需验证你的邮箱地址（点击确认链接即可），无需域名 DNS 配置。
+                      免费 300 封/天。在{' '}
+                      <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noopener noreferrer">
+                        app.brevo.com
+                      </a>{' '}
+                      创建 API Key（格式：xkeysib-xxxxx）。
+                    </div>
+                    <Input
+                      label="Brevo API Key"
+                      type="password"
+                      placeholder="xkeysib-xxxxxxxxxxxxx"
+                      value={form.brevo_api_key}
+                      onChange={handleChange('brevo_api_key')}
+                    />
+                  </div>
+
+                  <div className="modal__advanced-section">
+                    <span className="modal__advanced-label">备选 1</span>
+                    <div className="modal__advanced-hint">
+                      <strong>SendGrid</strong> ——只需验证单个邮箱地址。免费 100 封/天。在{' '}
                       <a href="https://app.sendgrid.com/settings/api_keys" target="_blank" rel="noopener noreferrer">
                         app.sendgrid.com
                       </a>{' '}
@@ -171,10 +191,9 @@ function AddAccountModal({ onClose, onSuccess }) {
                   </div>
 
                   <div className="modal__advanced-section">
-                    <span className="modal__advanced-label">备选</span>
+                    <span className="modal__advanced-label">备选 2</span>
                     <div className="modal__advanced-hint">
-                      <strong>Resend</strong> 需先验证域名所有权（配置 SPF/DKIM DNS 记录）。
-                      在{' '}
+                      <strong>Resend</strong> ——需先验证域名所有权（配置 SPF/DKIM DNS 记录）。在{' '}
                       <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer">
                         resend.com/api-keys
                       </a>{' '}
