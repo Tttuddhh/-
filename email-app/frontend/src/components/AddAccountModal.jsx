@@ -41,7 +41,7 @@ function AddAccountModal({ onClose, onSuccess }) {
     setError('');
 
     if (!form.email.trim() || !form.password.trim()) {
-      setError('Email and password are required');
+      setError('邮箱地址和密码为必填项');
       return;
     }
 
@@ -58,7 +58,7 @@ function AddAccountModal({ onClose, onSuccess }) {
       });
       onSuccess();
     } catch (err) {
-      setError(err.message || 'Failed to add account');
+      setError(err.message || '添加账户失败');
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ function AddAccountModal({ onClose, onSuccess }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal__header">
-          <h2 className="modal__title">Add Email Account</h2>
+          <h2 className="modal__title">添加邮箱账号</h2>
           <button className="modal__close" onClick={onClose}>
             <Icon name="x" size={20} />
           </button>
@@ -80,38 +80,38 @@ function AddAccountModal({ onClose, onSuccess }) {
 
             <div className="modal__form-group">
               <Input
-                label="Email Address"
+                label="邮箱地址"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="请输入邮箱地址"
                 value={form.email}
                 onChange={handleChange('email')}
                 required
               />
               <Input
-                label="Password"
+                label="密码"
                 type="password"
-                placeholder="Email account password"
+                placeholder="邮箱账户密码"
                 value={form.password}
                 onChange={handleChange('password')}
                 required
               />
               <Input
-                label="Display Name"
+                label="显示名称"
                 type="text"
-                placeholder="Your name (optional)"
+                placeholder="你的姓名（选填）"
                 value={form.name}
                 onChange={handleChange('name')}
               />
               <div className="modal__form-row">
                 <Input
-                  label="IMAP Host"
+                  label="IMAP 服务器"
                   type="text"
                   placeholder="imap.mail.com"
                   value={form.imap_host}
                   onChange={handleChange('imap_host')}
                 />
                 <Input
-                  label="IMAP Port"
+                  label="IMAP 端口"
                   type="text"
                   placeholder="993"
                   value={form.imap_port}
@@ -120,14 +120,14 @@ function AddAccountModal({ onClose, onSuccess }) {
               </div>
               <div className="modal__form-row">
                 <Input
-                  label="SMTP Host"
+                  label="SMTP 服务器"
                   type="text"
                   placeholder="smtp.mail.com"
                   value={form.smtp_host}
                   onChange={handleChange('smtp_host')}
                 />
                 <Input
-                  label="SMTP Port"
+                  label="SMTP 端口"
                   type="text"
                   placeholder="587"
                   value={form.smtp_port}
@@ -139,10 +139,10 @@ function AddAccountModal({ onClose, onSuccess }) {
 
           <div className="modal__footer">
             <Button variant="ghost" onClick={onClose} type="button">
-              Cancel
+              取消
             </Button>
             <Button variant="primary" type="submit" loading={loading}>
-              Add Account
+              添加账号
             </Button>
           </div>
         </form>

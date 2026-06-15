@@ -19,11 +19,11 @@ function LoginPage() {
     setError('');
 
     if (!email.trim()) {
-      setError('Please enter your email address');
+      setError('请输入邮箱地址');
       return;
     }
     if (!password) {
-      setError('Please enter your password');
+      setError('请输入密码');
       return;
     }
 
@@ -32,7 +32,7 @@ function LoginPage() {
       await login(email.trim(), password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      setError(err.message || '登录失败，请检查邮箱和密码。');
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,7 @@ function LoginPage() {
           <h1 className="auth-page__brand-title">MailBox</h1>
           <span className="auth-page__brand-title-accent">Pro</span>
           <p className="auth-page__brand-subtitle">
-            Your professional email client for managing multiple accounts with ease and elegance.
+            管理多个邮箱账户的专业邮件客户端，简洁优雅。
           </p>
           <div className="auth-page__brand-line" />
         </div>
@@ -56,27 +56,27 @@ function LoginPage() {
 
       <div className="auth-page__form">
         <div className="auth-page__card">
-          <h2 className="auth-page__card-title">Welcome back</h2>
-          <p className="auth-page__card-subtitle">Sign in to your MailBox Pro account</p>
+          <h2 className="auth-page__card-title">欢迎回来</h2>
+          <p className="auth-page__card-subtitle">登录你的 MailBox Pro 账户</p>
 
           <form onSubmit={handleSubmit}>
             {error && <div className="auth-page__error">{error}</div>}
 
             <div className="auth-page__form-group">
               <Input
-                label="Email"
+                label="邮箱"
                 type="email"
                 id="login-email"
-                placeholder="you@example.com"
+                placeholder="请输入邮箱地址"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
-                label="Password"
+                label="密码"
                 type="password"
                 id="login-password"
-                placeholder="Enter your password"
+                placeholder="请输入密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -85,13 +85,13 @@ function LoginPage() {
 
             <div className="auth-page__actions">
               <Button type="submit" variant="primary" size="lg" loading={loading}>
-                Sign In
+                登录
               </Button>
             </div>
 
             <div className="auth-page__footer">
-              Don&apos;t have an account?
-              <Link to="/register">Create one</Link>
+              还没有账户？
+              <Link to="/register">注册一个</Link>
             </div>
           </form>
         </div>

@@ -11,15 +11,15 @@ function Sidebar({ activeFolder, onFolderChange, onCompose, accounts, activeAcco
   const [showAddAccount, setShowAddAccount] = useState(false);
 
   const folders = [
-    { id: 'inbox', label: 'Inbox', icon: 'inbox' },
-    { id: 'sent', label: 'Sent', icon: 'send' },
-    { id: 'drafts', label: 'Drafts', icon: 'draft' },
-    { id: 'trash', label: 'Trash', icon: 'trash' },
+    { id: 'inbox', label: '收件箱', icon: 'inbox' },
+    { id: 'sent', label: '已发送', icon: 'send' },
+    { id: 'drafts', label: '草稿箱', icon: 'draft' },
+    { id: 'trash', label: '废纸篓', icon: 'trash' },
   ];
 
   const handleRemoveAccount = async (e, id) => {
     e.stopPropagation();
-    if (!confirm('Remove this account?')) return;
+    if (!confirm('确定要移除这个账户吗？')) return;
     try {
       await api.accounts.remove(id);
       if (onAccountsChange) onAccountsChange();
@@ -52,10 +52,10 @@ function Sidebar({ activeFolder, onFolderChange, onCompose, accounts, activeAcco
       </div>
 
       {/* Accounts */}
-      <div className="sidebar__section-label">Accounts</div>
+      <div className="sidebar__section-label">账户</div>
       <div className="sidebar__accounts">
         {(!accounts || accounts.length === 0) && (
-          <div className="sidebar__loading">No accounts</div>
+          <div className="sidebar__loading">暂无账户</div>
         )}
         {accounts &&
           accounts.map((acct) => (
@@ -70,7 +70,7 @@ function Sidebar({ activeFolder, onFolderChange, onCompose, accounts, activeAcco
               <button
                 className="sidebar__account-remove"
                 onClick={(e) => handleRemoveAccount(e, acct.id)}
-                title="Remove account"
+                title="移除账户"
               >
                 <Icon name="x" size={14} />
               </button>
@@ -78,12 +78,12 @@ function Sidebar({ activeFolder, onFolderChange, onCompose, accounts, activeAcco
           ))}
         <button className="sidebar__add-account" onClick={() => setShowAddAccount(true)}>
           <Icon name="plus" size={14} />
-          <span>Add Account</span>
+          <span>添加账号</span>
         </button>
       </div>
 
       {/* Folders */}
-      <div className="sidebar__section-label">Folders</div>
+      <div className="sidebar__section-label">文件夹</div>
       <nav className="sidebar__folders">
         {folders.map((folder) => (
           <div
@@ -114,7 +114,7 @@ function Sidebar({ activeFolder, onFolderChange, onCompose, accounts, activeAcco
           onClick={onCompose}
         >
           <Icon name="plus" size={16} />
-          <span>Compose</span>
+          <span>写邮件</span>
         </button>
       </div>
 
@@ -122,10 +122,10 @@ function Sidebar({ activeFolder, onFolderChange, onCompose, accounts, activeAcco
       <div className="sidebar__user">
         <Avatar name={user?.name || user?.email} email={user?.email} size="sm" />
         <div className="sidebar__user-info">
-          <div className="sidebar__user-name">{user?.name || user?.email || 'User'}</div>
+          <div className="sidebar__user-name">{user?.name || user?.email || '用户'}</div>
           <div className="sidebar__user-email">{user?.email}</div>
         </div>
-        <button className="sidebar__logout" onClick={logout} title="Logout">
+        <button className="sidebar__logout" onClick={logout} title="退出登录">
           <Icon name="settings" size={18} />
         </button>
       </div>

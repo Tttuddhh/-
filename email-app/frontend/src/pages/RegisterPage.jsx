@@ -20,11 +20,11 @@ function RegisterPage() {
     setError('');
 
     if (!email.trim()) {
-      setError('Please enter your email address');
+      setError('请输入邮箱地址');
       return;
     }
     if (!password || password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError('密码至少需要6个字符');
       return;
     }
 
@@ -33,7 +33,7 @@ function RegisterPage() {
       await register(name.trim() || undefined, email.trim(), password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || '注册失败，请重试。');
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ function RegisterPage() {
           <h1 className="auth-page__brand-title">MailBox</h1>
           <span className="auth-page__brand-title-accent">Pro</span>
           <p className="auth-page__brand-subtitle">
-            Join MailBox Pro and take control of your email experience.
+            加入 MailBox Pro，开启你的邮件管理之旅。
           </p>
           <div className="auth-page__brand-line" />
         </div>
@@ -57,35 +57,35 @@ function RegisterPage() {
 
       <div className="auth-page__form">
         <div className="auth-page__card">
-          <h2 className="auth-page__card-title">Create account</h2>
-          <p className="auth-page__card-subtitle">Get started with MailBox Pro</p>
+          <h2 className="auth-page__card-title">创建账户</h2>
+          <p className="auth-page__card-subtitle">开始使用 MailBox Pro</p>
 
           <form onSubmit={handleSubmit}>
             {error && <div className="auth-page__error">{error}</div>}
 
             <div className="auth-page__form-group">
               <Input
-                label="Name (optional)"
+                label="姓名（选填）"
                 type="text"
                 id="register-name"
-                placeholder="Your name"
+                placeholder="你的姓名"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
               <Input
-                label="Email"
+                label="邮箱"
                 type="email"
                 id="register-email"
-                placeholder="you@example.com"
+                placeholder="请输入邮箱地址"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <Input
-                label="Password"
+                label="密码"
                 type="password"
                 id="register-password"
-                placeholder="At least 6 characters"
+                placeholder="至少6个字符"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -94,13 +94,13 @@ function RegisterPage() {
 
             <div className="auth-page__actions">
               <Button type="submit" variant="primary" size="lg" loading={loading}>
-                Create Account
+                创建账户
               </Button>
             </div>
 
             <div className="auth-page__footer">
-              Already have an account?
-              <Link to="/login">Sign in</Link>
+              已有账户？
+              <Link to="/login">登录</Link>
             </div>
           </form>
         </div>

@@ -31,7 +31,7 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
 
   const handleDelete = async () => {
     if (!email) return;
-    if (!confirm('Move this email to trash?')) return;
+    if (!confirm('确定要将这封邮件移至废纸篓吗？')) return;
     try {
       await api.emails.delete(email.id);
       if (onDelete) onDelete(email.id);
@@ -43,12 +43,12 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
   const formatFullDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString([], {
+    return date.toLocaleDateString('zh-CN', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    }) + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }) + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   };
 
   if (!emailId) {
@@ -58,7 +58,7 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
           <div className="email-detail__empty-icon">
             <Icon name="mail" size={64} color="#e5dfd5" />
           </div>
-          <p>Select an email to read</p>
+          <p>选择一封邮件阅读</p>
         </div>
       </div>
     );
@@ -69,7 +69,7 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
       <div className="email-detail">
         <div className="email-detail__loading">
           <div className="email-detail__spinner" />
-          <span>Loading email...</span>
+          <span>加载中...</span>
         </div>
       </div>
     );
@@ -79,13 +79,13 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
     return (
       <div className="email-detail">
         <div className="email-detail__empty">
-          <p>Email not found</p>
+          <p>邮件未找到</p>
         </div>
       </div>
     );
   }
 
-  const senderName = email.from_name || email.from || 'Unknown';
+  const senderName = email.from_name || email.from || '未知';
   const senderEmail = email.from || '';
 
   return (
@@ -95,14 +95,14 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
         {onClose && (
           <button className="email-detail__action-btn" onClick={onClose}>
             <Icon name="chevron-left" size={16} />
-            Back
+            返回
           </button>
         )}
         <div className="email-detail__action-spacer" />
         <button
           className="email-detail__action-btn"
           onClick={() => setStarred(!starred)}
-          title={starred ? 'Unstar' : 'Star'}
+          title={starred ? '取消收藏' : '收藏'}
         >
           <Icon name="star" size={16} color={starred ? '#b8974e' : undefined} />
         </button>
@@ -111,27 +111,27 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
           onClick={() => onReply && onReply(email)}
         >
           <Icon name="reply" size={16} />
-          Reply
+          回复
         </button>
         <button
           className="email-detail__action-btn"
           onClick={() => onForward && onForward(email)}
         >
           <Icon name="forward" size={16} />
-          Forward
+          转发
         </button>
         <button
           className="email-detail__action-btn email-detail__action-btn--danger"
           onClick={handleDelete}
         >
           <Icon name="trash" size={16} />
-          Delete
+          删除
         </button>
       </div>
 
       {/* Content */}
       <div className="email-detail__content">
-        <h1 className="email-detail__subject">{email.subject || '(No subject)'}</h1>
+        <h1 className="email-detail__subject">{email.subject || '(无主题)'}</h1>
 
         <div className="email-detail__meta">
           <Avatar name={senderName} email={senderEmail} size="lg" />
@@ -139,7 +139,7 @@ function EmailDetail({ emailId, onReply, onForward, onDelete, onClose }) {
             <div className="email-detail__from">{senderName}</div>
             <div className="email-detail__from-email">{senderEmail}</div>
             <div className="email-detail__meta-row">
-              <span>to</span> {email.to || 'me'}
+              <span>to</span> {email.to || '我'}
             </div>
             <div className="email-detail__time">
               {formatFullDate(email.date || email.created_at)}

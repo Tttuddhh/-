@@ -15,7 +15,7 @@ function formatEmailTime(dateStr) {
     date.getDate() === now.getDate();
 
   if (isToday) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return '今天 ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   const yesterday = new Date(now);
@@ -26,15 +26,17 @@ function formatEmailTime(dateStr) {
     date.getDate() === yesterday.getDate();
 
   if (isYesterday) {
-    return 'Yesterday';
+    return '昨天';
   }
 
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
   const isThisYear = date.getFullYear() === now.getFullYear();
   if (isThisYear) {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return month + '月' + day + '日';
   }
 
-  return date.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+  return date.getFullYear() + '年' + month + '月' + day + '日';
 }
 
 function EmailList({ folder, selectedEmailId, onSelectEmail, onRefresh }) {
@@ -99,21 +101,21 @@ function EmailList({ folder, selectedEmailId, onSelectEmail, onRefresh }) {
   };
 
   const folderLabels = {
-    inbox: 'Inbox',
-    sent: 'Sent',
-    drafts: 'Drafts',
-    trash: 'Trash',
+    inbox: '收件箱',
+    sent: '已发送',
+    drafts: '草稿箱',
+    trash: '废纸篓',
   };
 
   return (
     <div className="email-list">
       <div className="email-list__header">
-        <h2 className="email-list__title">{folderLabels[folder] || 'Inbox'}</h2>
+        <h2 className="email-list__title">{folderLabels[folder] || '收件箱'}</h2>
         <div className="email-list__search">
           <Icon name="search" size={14} color="#9a9ca5" />
           <input
             type="text"
-            placeholder="Search emails..."
+            placeholder="搜索邮件..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
@@ -124,12 +126,12 @@ function EmailList({ folder, selectedEmailId, onSelectEmail, onRefresh }) {
       {loading ? (
         <div className="email-list__loading">
           <div className="email-list__spinner" />
-          <span>Loading emails...</span>
+          <span>加载中...</span>
         </div>
       ) : emails.length === 0 ? (
         <div className="email-list__empty">
           <Icon name="inbox" size={48} color="#e5dfd5" />
-          <p>No emails found</p>
+          <p>暂无邮件</p>
         </div>
       ) : (
         <>
@@ -157,7 +159,7 @@ function EmailList({ folder, selectedEmailId, onSelectEmail, onRefresh }) {
                       {formatEmailTime(email.date || email.created_at)}
                     </span>
                   </div>
-                  <div className="email-list__subject">{email.subject || '(No subject)'}</div>
+                  <div className="email-list__subject">{email.subject || '(无主题)'}</div>
                   <div className="email-list__snippet">
                     {email.snippet || email.body_preview || ''}
                   </div>
@@ -175,7 +177,7 @@ function EmailList({ folder, selectedEmailId, onSelectEmail, onRefresh }) {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 <Icon name="chevron-left" size={14} />
-                Previous
+                上一页
               </Button>
               <span className="email-list__page-info">
                 {page} / {totalPages}
@@ -186,7 +188,7 @@ function EmailList({ folder, selectedEmailId, onSelectEmail, onRefresh }) {
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               >
-                Next
+                下一页
                 <Icon name="chevron-right" size={14} />
               </Button>
             </div>

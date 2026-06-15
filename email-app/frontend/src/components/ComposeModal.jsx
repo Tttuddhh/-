@@ -67,11 +67,11 @@ function ComposeModal({ mode = 'new', replyTo, forwardEmail, onClose, onSuccess 
     setError('');
 
     if (!to.trim()) {
-      setError('Please enter a recipient email address');
+      setError('请输入收件人邮箱地址');
       return;
     }
     if (!subject.trim()) {
-      setError('Please enter a subject');
+      setError('请输入邮件主题');
       return;
     }
 
@@ -91,23 +91,23 @@ function ComposeModal({ mode = 'new', replyTo, forwardEmail, onClose, onSuccess 
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to send email');
+      setError(err.message || '邮件发送失败');
     } finally {
       setLoading(false);
     }
   };
 
   const titleMap = {
-    new: 'New Message',
-    reply: 'Reply',
-    forward: 'Forward',
+    new: '写邮件',
+    reply: '回复',
+    forward: '转发',
   };
 
   return (
     <div className="compose-overlay" onClick={onClose}>
       <div className="compose-modal" onClick={(e) => e.stopPropagation()}>
         <div className="compose-modal__header">
-          <h2 className="compose-modal__title">{titleMap[mode] || 'New Message'}</h2>
+          <h2 className="compose-modal__title">{titleMap[mode] || '写邮件'}</h2>
           <button className="compose-modal__close" onClick={onClose}>
             <Icon name="x" size={20} />
           </button>
@@ -117,10 +117,10 @@ function ComposeModal({ mode = 'new', replyTo, forwardEmail, onClose, onSuccess 
           {error && <div className="compose-modal__error">{error}</div>}
 
           <div className="compose-modal__field">
-            <label className="compose-modal__field-label">To</label>
+            <label className="compose-modal__field-label">收件人</label>
             <input
               type="email"
-              placeholder="recipient@example.com"
+              placeholder="收件人@example.com"
               value={to}
               onChange={(e) => setTo(e.target.value)}
               disabled={mode === 'reply'}
@@ -129,10 +129,10 @@ function ComposeModal({ mode = 'new', replyTo, forwardEmail, onClose, onSuccess 
 
           {showCc && (
             <div className="compose-modal__field">
-              <label className="compose-modal__field-label">Cc</label>
+              <label className="compose-modal__field-label">抄送</label>
               <input
                 type="email"
-                placeholder="cc@example.com"
+                placeholder="抄送@example.com"
                 value={cc}
                 onChange={(e) => setCc(e.target.value)}
               />
@@ -146,24 +146,24 @@ function ComposeModal({ mode = 'new', replyTo, forwardEmail, onClose, onSuccess 
               type="button"
             >
               <Icon name="plus" size={12} />
-              Add Cc
+              添加抄送
             </button>
           )}
 
           <div className="compose-modal__field">
-            <label className="compose-modal__field-label">Subject</label>
+            <label className="compose-modal__field-label">主题</label>
             <input
               type="text"
-              placeholder="Email subject"
+              placeholder="邮件主题"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
             />
           </div>
 
           <div className="compose-modal__field">
-            <label className="compose-modal__field-label">Message</label>
+            <label className="compose-modal__field-label">内容</label>
             <textarea
-              placeholder="Write your message..."
+              placeholder="写下你的邮件内容..."
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
@@ -174,16 +174,16 @@ function ComposeModal({ mode = 'new', replyTo, forwardEmail, onClose, onSuccess 
           <div className="compose-modal__footer-actions">
             <Button variant="ghost" onClick={onClose} type="button">
               <Icon name="trash" size={14} />
-              Discard
+              丢弃
             </Button>
           </div>
           <div className="compose-modal__footer-actions">
             <Button variant="ghost" onClick={onClose} type="button">
-              Cancel
+              取消
             </Button>
             <Button variant="primary" onClick={handleSend} loading={loading}>
               <Icon name="send" size={14} />
-              Send
+              发送
             </Button>
           </div>
         </div>

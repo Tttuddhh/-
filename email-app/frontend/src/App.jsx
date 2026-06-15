@@ -18,7 +18,7 @@ function ProtectedRoute({ children }) {
       <div className="app-loading">
         <div className="app-loading__brand">MailBox Pro</div>
         <div className="app-loading__spinner" />
-        <span>Loading...</span>
+        <span>加载中...</span>
       </div>
     );
   }
