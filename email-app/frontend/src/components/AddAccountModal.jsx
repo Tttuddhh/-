@@ -15,6 +15,7 @@ function AddAccountModal({ onClose, onSuccess }) {
     smtp_host: '',
     smtp_port: '587',
     name: '',
+    sendgrid_api_key: '',
     resend_api_key: '',
   });
   const [error, setError] = useState('');
@@ -57,6 +58,7 @@ function AddAccountModal({ onClose, onSuccess }) {
         smtp_host: form.smtp_host.trim() || undefined,
         smtp_port: form.smtp_port ? parseInt(form.smtp_port, 10) : undefined,
         name: form.name.trim() || undefined,
+        sendgrid_api_key: form.sendgrid_api_key.trim() || undefined,
         resend_api_key: form.resend_api_key.trim() || undefined,
       });
       onSuccess();
@@ -149,20 +151,43 @@ function AddAccountModal({ onClose, onSuccess }) {
 
               {showAdvanced && (
                 <div className="modal__advanced">
-                  <div className="modal__advanced-hint">
-                    使用 Resend API 发送邮件，无需配置 SMTP 密码。在{' '}
-                    <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer">
-                      resend.com/api-keys
-                    </a>{' '}
-                    获取 API Key。
+                  <div className="modal__advanced-section">
+                    <span className="modal__advanced-label modal__advanced-label--recommend">推荐</span>
+                    <div className="modal__advanced-hint">
+                      使用 <strong>SendGrid</strong> 发送邮件——只需验证单个邮箱地址（点击验证邮件即可），无需配置域名 DNS。
+                      免费 100 封/天。在{' '}
+                      <a href="https://app.sendgrid.com/settings/api_keys" target="_blank" rel="noopener noreferrer">
+                        app.sendgrid.com
+                      </a>{' '}
+                      创建 API Key（格式：SG.xxxxx）。
+                    </div>
+                    <Input
+                      label="SendGrid API Key"
+                      type="password"
+                      placeholder="SG.xxxxxxxxxxxxx"
+                      value={form.sendgrid_api_key}
+                      onChange={handleChange('sendgrid_api_key')}
+                    />
                   </div>
-                  <Input
-                    label="Resend API Key"
-                    type="password"
-                    placeholder="re_xxxxxxxxxxxxx"
-                    value={form.resend_api_key}
-                    onChange={handleChange('resend_api_key')}
-                  />
+
+                  <div className="modal__advanced-section">
+                    <span className="modal__advanced-label">备选</span>
+                    <div className="modal__advanced-hint">
+                      <strong>Resend</strong> 需先验证域名所有权（配置 SPF/DKIM DNS 记录）。
+                      在{' '}
+                      <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer">
+                        resend.com/api-keys
+                      </a>{' '}
+                      获取 API Key。
+                    </div>
+                    <Input
+                      label="Resend API Key"
+                      type="password"
+                      placeholder="re_xxxxxxxxxxxxx"
+                      value={form.resend_api_key}
+                      onChange={handleChange('resend_api_key')}
+                    />
+                  </div>
                 </div>
               )}
             </div>

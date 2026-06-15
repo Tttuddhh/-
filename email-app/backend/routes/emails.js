@@ -1,6 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const db = require('../database');
+const { sendWithSendGrid } = require('../services/sendgrid');
 const { sendWithResend } = require('../services/resend');
 
 const router = express.Router();
@@ -13,17 +14,37 @@ function getActiveAccount(userId) {
 }
 
 /**
- * 统一发送邮件：优先使用 Resend API，回退到 SMTP
- * Resend API 文档: https://resend.com/docs/api-reference/emails/send-email
+ * 统一发送邮件：SendGrid → Resend → SMTP 三级回退
+ * SendGrid: 只需验证单个邮箱，无需域名 (100封/天免费)
+ * Resend:   需验证域名 DNS
+ * SMTP:     需邮箱密码/授权码
  */
 async function sendEmail(account, { to, subject, body, cc, bcc, replyTo, inReplyTo, references }) {
-  // 优先尝试 Resend
+  const from = account.name
+    ? `${account.name} <${account.email}>`
+    : account.email;
+
+  // 第一优先：SendGrid（最简单，无需域名）
+  if (account.sendgrid_api_key) {
+    try {
+      const result = await sendWithSendGrid({
+        sendgridApiKey: account.sendgrid_api_key,
+        from: account.email,
+        to,
+        subject,
+        text: body,
+        cc,
+        bcc,
+      });
+      return { provider: 'sendgrid', messageId: result.messageId };
+    } catch (sgErr) {
+      console.warn('SendGrid 发送失败，回退到 Resend:', sgErr.message);
+    }
+  }
+
+  // 第二优先：Resend（需域名验证）
   if (account.resend_api_key) {
     try {
-      const from = account.name
-        ? `${account.name} <${account.email}>`
-        : account.email;
-
       const result = await sendWithResend({
         resendApiKey: account.resend_api_key,
         from,
@@ -34,11 +55,9 @@ async function sendEmail(account, { to, subject, body, cc, bcc, replyTo, inReply
         bcc,
         replyTo,
       });
-
       return { provider: 'resend', messageId: result.id };
     } catch (resendErr) {
       console.warn('Resend 发送失败，回退到 SMTP:', resendErr.message);
-      // 回退到 SMTP，不直接抛错
     }
   }
 

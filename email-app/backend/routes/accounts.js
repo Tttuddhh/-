@@ -3,17 +3,18 @@ const db = require('../database');
 
 const router = express.Router();
 
-// Ensure password & resend_api_key columns exist in email_accounts
+// Ensure password & api key columns exist in email_accounts
 (function migrateColumns() {
   try {
     const cols = db.prepare("PRAGMA table_info('email_accounts')").all();
     if (!cols.some(col => col.name === 'password')) {
       db.exec("ALTER TABLE email_accounts ADD COLUMN password TEXT");
-      console.log('Added password column to email_accounts');
     }
     if (!cols.some(col => col.name === 'resend_api_key')) {
       db.exec("ALTER TABLE email_accounts ADD COLUMN resend_api_key TEXT");
-      console.log('Added resend_api_key column to email_accounts');
+    }
+    if (!cols.some(col => col.name === 'sendgrid_api_key')) {
+      db.exec("ALTER TABLE email_accounts ADD COLUMN sendgrid_api_key TEXT");
     }
   } catch (err) {
     console.error('Migration error for email_accounts:', err.message);
@@ -23,7 +24,11 @@ const router = express.Router();
 // GET /api/accounts - Get all accounts for user
 router.get('/', (req, res) => {
   const accounts = db.prepare(
-    'SELECT id, user_id, email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, is_active, created_at, CASE WHEN resend_api_key IS NOT NULL AND resend_api_key != \'\' THEN 1 ELSE 0 END as has_resend FROM email_accounts WHERE user_id = ? ORDER BY created_at DESC'
+    `SELECT id, user_id, email, name, imap_host, imap_port, imap_secure,
+            smtp_host, smtp_port, smtp_secure, is_active, created_at,
+            CASE WHEN resend_api_key IS NOT NULL AND resend_api_key != '' THEN 1 ELSE 0 END as has_resend,
+            CASE WHEN sendgrid_api_key IS NOT NULL AND sendgrid_api_key != '' THEN 1 ELSE 0 END as has_sendgrid
+     FROM email_accounts WHERE user_id = ? ORDER BY created_at DESC`
   ).all(req.user.id);
 
   res.json({ accounts });
@@ -31,34 +36,34 @@ router.get('/', (req, res) => {
 
 // POST /api/accounts - Add new account
 router.post('/', (req, res) => {
-  const { email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key } = req.body;
+  const { email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, sendgrid_api_key } = req.body;
 
   if (!email || !imap_host || !imap_port || !smtp_host || !smtp_port) {
     return res.status(400).json({ error: 'Missing required fields: email, imap_host, imap_port, smtp_host, smtp_port' });
   }
 
   const result = db.prepare(
-    `INSERT INTO email_accounts (user_id, email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, is_active)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+    `INSERT INTO email_accounts (user_id, email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, password, resend_api_key, sendgrid_api_key, is_active)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
   ).run(
-    req.user.id,
-    email,
+    req.user.id, email,
     name || null,
-    imap_host,
-    imap_port,
-    imap_secure !== undefined ? imap_secure : 1,
-    smtp_host,
-    smtp_port,
-    smtp_secure !== undefined ? smtp_secure : 1,
+    imap_host, imap_port, imap_secure !== undefined ? imap_secure : 1,
+    smtp_host, smtp_port, smtp_secure !== undefined ? smtp_secure : 1,
     password || null,
-    resend_api_key || null
+    resend_api_key || null,
+    sendgrid_api_key || null
   );
 
   // Set all other accounts to inactive
   db.prepare('UPDATE email_accounts SET is_active = 0 WHERE user_id = ? AND id != ?').run(req.user.id, result.lastInsertRowid);
 
   const account = db.prepare(
-    'SELECT id, user_id, email, name, imap_host, imap_port, imap_secure, smtp_host, smtp_port, smtp_secure, is_active, created_at, CASE WHEN resend_api_key IS NOT NULL AND resend_api_key != \'\' THEN 1 ELSE 0 END as has_resend FROM email_accounts WHERE id = ?'
+    `SELECT id, user_id, email, name, imap_host, imap_port, imap_secure,
+            smtp_host, smtp_port, smtp_secure, is_active, created_at,
+            CASE WHEN resend_api_key IS NOT NULL AND resend_api_key != '' THEN 1 ELSE 0 END as has_resend,
+            CASE WHEN sendgrid_api_key IS NOT NULL AND sendgrid_api_key != '' THEN 1 ELSE 0 END as has_sendgrid
+     FROM email_accounts WHERE id = ?`
   ).get(result.lastInsertRowid);
 
   res.status(201).json({ account });
