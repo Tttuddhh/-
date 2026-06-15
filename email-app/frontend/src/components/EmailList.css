@@ -1,0 +1,227 @@
+/* ============================================
+   Email List
+   ============================================ */
+
+.email-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* --- Header --- */
+.email-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.email-list__title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  white-space: nowrap;
+}
+
+.email-list__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px;
+  background-color: var(--color-page-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  max-width: 200px;
+}
+
+.email-list__search:focus-within {
+  border-color: var(--color-primary);
+  background-color: var(--color-card-white);
+}
+
+.email-list__search input {
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-dark);
+  width: 100%;
+}
+
+.email-list__search input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* --- Items --- */
+.email-list__items {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
+}
+
+.email-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+  position: relative;
+}
+
+.email-list__item:hover {
+  background-color: var(--color-hover-light);
+}
+
+.email-list__item--selected {
+  background-color: var(--color-primary-light);
+  border-left-color: var(--color-primary);
+}
+
+.email-list__item--unread {
+  /* subtle indicator */
+}
+
+.email-list__unread-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-coral);
+  flex-shrink: 0;
+}
+
+.email-list__unread-dot--read {
+  background-color: transparent;
+}
+
+.email-list__item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.email-list__item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.email-list__sender {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-list__item--unread .email-list__sender {
+  font-weight: 600;
+}
+
+.email-list__time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.email-list__subject {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-list__item--unread .email-list__subject {
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.email-list__snippet {
+  font-size: 12px;
+  color: var(--color-text-gray);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Empty State --- */
+.email-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+/* --- Loading --- */
+.email-list__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.email-list__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border-light);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  animation: list-spin 0.6s linear infinite;
+}
+
+@keyframes list-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Pagination --- */
+.email-list__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.email-list__page-info {
+  font-size: 12px;
+  color: var(--color-text-gray);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .email-list__header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .email-list__item {
+    padding: var(--space-3) var(--space-4);
+  }
+}

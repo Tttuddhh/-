@@ -1,0 +1,265 @@
+/* ============================================
+   MailBox Pro — Studio No.5 Design System
+   ============================================ */
+
+/* --- Google Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&display=swap');
+
+/* --- Design Tokens --- */
+:root {
+  /* === Studio No.5 Palette === */
+  --color-sidebar-bg: #191c24;
+  --color-page-bg: #f5f2eb;
+  --color-card-white: #ffffff;
+  --color-primary: #4a5f7a;
+  --color-primary-hover: #3d4f66;
+  --color-primary-active: #314156;
+  --color-primary-light: rgba(74, 95, 122, 0.08);
+  --color-brass: #b8974e;
+  --color-brass-hover: #a58641;
+  --color-brass-light: rgba(184, 151, 78, 0.12);
+  --color-coral: #e67e6a;
+  --color-coral-hover: #d96c57;
+  --color-coral-light: rgba(230, 126, 106, 0.1);
+  --color-sage: #67a87a;
+  --color-sage-light: rgba(103, 168, 122, 0.1);
+  --color-text-dark: #242838;
+  --color-text-gray: #787a85;
+  --color-text-muted: #9a9ca5;
+  --color-border: #e5dfd5;
+  --color-border-light: #ede8de;
+  --color-hover: #ede8de;
+  --color-hover-light: #f5f1ea;
+
+  /* === Functional Aliases === */
+  --color-danger: var(--color-coral);
+  --color-danger-hover: var(--color-coral-hover);
+  --color-success: var(--color-sage);
+  --color-accent: var(--color-brass);
+
+  /* === Typography === */
+  --font-body: 'Lexend', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Fraunces', Georgia, 'Times New Roman', serif;
+
+  /* === Spacing Scale === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* === Border Radius === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* === Shadows === */
+  --shadow-xs: 0 1px 2px rgba(36, 40, 56, 0.04);
+  --shadow-sm: 0 1px 3px rgba(36, 40, 56, 0.06), 0 1px 2px rgba(36, 40, 56, 0.04);
+  --shadow-md: 0 4px 6px rgba(36, 40, 56, 0.06), 0 2px 4px rgba(36, 40, 56, 0.04);
+  --shadow-lg: 0 10px 15px rgba(36, 40, 56, 0.08), 0 4px 6px rgba(36, 40, 56, 0.04);
+  --shadow-xl: 0 20px 25px rgba(36, 40, 56, 0.1), 0 8px 10px rgba(36, 40, 56, 0.06);
+
+  /* === Transitions === */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-smooth: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === Sidebar === */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 68px;
+
+  /* === Z-Index Scale === */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+}
+
+/* ============================================
+   Reset & Base
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text-dark);
+  background-color: var(--color-page-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-size: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text-dark);
+}
+
+/* ============================================
+   Focus Styles
+   ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   Selection
+   ============================================ */
+
+::selection {
+  background-color: var(--color-brass-light);
+  color: var(--color-text-dark);
+}
+
+::-moz-selection {
+  background-color: var(--color-brass-light);
+  color: var(--color-text-dark);
+}
+
+/* ============================================
+   Custom Scrollbar
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-muted);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }

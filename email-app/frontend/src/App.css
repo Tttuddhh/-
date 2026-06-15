@@ -1,0 +1,38 @@
+/* ============================================
+   App-level styles
+   ============================================ */
+
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: var(--space-4);
+  background-color: var(--color-page-bg);
+  color: var(--color-text-gray);
+  font-size: 14px;
+}
+
+.app-loading__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--color-border-light);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  animation: app-spin 0.6s linear infinite;
+}
+
+.app-loading__brand {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+  margin-bottom: var(--space-2);
+}
+
+@keyframes app-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
