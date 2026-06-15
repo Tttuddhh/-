@@ -1,14 +1,95 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const db = require('../database');
+const { sendWithResend } = require('../services/resend');
 
 const router = express.Router();
 
-// Helper: get the active email account for a user
+// Helper: get the active email account for a user (including resend_api_key)
 function getActiveAccount(userId) {
   return db.prepare(
     'SELECT * FROM email_accounts WHERE user_id = ? AND is_active = 1'
   ).get(userId);
+}
+
+/**
+ * 统一发送邮件：优先使用 Resend API，回退到 SMTP
+ * Resend API 文档: https://resend.com/docs/api-reference/emails/send-email
+ */
+async function sendEmail(account, { to, subject, body, cc, bcc, replyTo, inReplyTo, references }) {
+  // 优先尝试 Resend
+  if (account.resend_api_key) {
+    try {
+      const from = account.name
+        ? `${account.name} <${account.email}>`
+        : account.email;
+
+      const result = await sendWithResend({
+        resendApiKey: account.resend_api_key,
+        from,
+        to,
+        subject,
+        text: body,
+        cc,
+        bcc,
+        replyTo,
+      });
+
+      return { provider: 'resend', messageId: result.id };
+    } catch (resendErr) {
+      console.warn('Resend 发送失败，回退到 SMTP:', resendErr.message);
+      // 回退到 SMTP，不直接抛错
+    }
+  }
+
+  // SMTP 回退
+  if (!account.password) {
+    throw new Error('未配置 Resend API Key，且账户密码为空，无法发送邮件');
+  }
+
+  return new Promise((resolve, reject) => {
+    const transporter = nodemailer.createTransport({
+      host: account.smtp_host,
+      port: account.smtp_port,
+      secure: account.smtp_secure === 1,
+      auth: {
+        user: account.email,
+        pass: account.password,
+      },
+    });
+
+    const mailOptions = {
+      from: account.email,
+      to,
+      subject,
+      text: body,
+      cc: cc || undefined,
+      bcc: bcc || undefined,
+      replyTo: replyTo || undefined,
+      inReplyTo: inReplyTo || undefined,
+      references: references || undefined,
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        reject(new Error('SMTP 发送失败: ' + err.message));
+      } else {
+        resolve({ provider: 'smtp', messageId: info.messageId });
+      }
+    });
+  });
+}
+
+/**
+ * 保存已发送邮件到数据库
+ */
+function saveSentEmail(account, { to, subject, body }) {
+  const result = db.prepare(
+    `INSERT INTO emails (account_id, from_address, to_address, subject, body, folder, is_read, received_at)
+     VALUES (?, ?, ?, ?, ?, 'sent', 1, datetime('now'))`
+  ).run(account.id, account.email, to, subject, body);
+
+  return db.prepare('SELECT * FROM emails WHERE id = ?').get(result.lastInsertRowid);
 }
 
 // GET /api/emails/search - Search emails (MUST be before /:id)
@@ -111,15 +192,11 @@ router.put('/:id/read', (req, res) => {
   res.json({ email: updated });
 });
 
-// POST /api/emails/send - Send email
-router.post('/send', (req, res) => {
+// POST /api/emails/send - Send email (Resend 优先, SMTP 回退)
+router.post('/send', async (req, res) => {
   const activeAccount = getActiveAccount(req.user.id);
   if (!activeAccount) {
     return res.status(400).json({ error: 'No active email account configured.' });
-  }
-
-  if (!activeAccount.password) {
-    return res.status(400).json({ error: 'Account password is required for sending emails.' });
   }
 
   const { to, subject, body, cc, bcc } = req.body;
@@ -128,52 +205,25 @@ router.post('/send', (req, res) => {
     return res.status(400).json({ error: 'to, subject, and body are required.' });
   }
 
-  const transporter = nodemailer.createTransport({
-    host: activeAccount.smtp_host,
-    port: activeAccount.smtp_port,
-    secure: activeAccount.smtp_secure === 1,
-    auth: {
-      user: activeAccount.email,
-      pass: activeAccount.password
-    }
-  });
-
-  const mailOptions = {
-    from: activeAccount.email,
-    to,
-    subject,
-    text: body,
-    cc: cc || undefined,
-    bcc: bcc || undefined
-  };
-
-  transporter.sendMail(mailOptions, (err, info) => {
-    if (err) {
-      console.error('Send email error:', err.message);
-      return res.status(500).json({ error: 'Failed to send email: ' + err.message });
-    }
-
-    // Save to sent folder
-    const result = db.prepare(
-      `INSERT INTO emails (account_id, from_address, to_address, subject, body, folder, is_read, received_at)
-       VALUES (?, ?, ?, ?, ?, 'sent', 1, datetime('now'))`
-    ).run(activeAccount.id, activeAccount.email, to, subject, body);
-
-    const savedEmail = db.prepare('SELECT * FROM emails WHERE id = ?').get(result.lastInsertRowid);
-
-    res.status(201).json({ message: 'Email sent successfully.', email: savedEmail });
-  });
+  try {
+    const result = await sendEmail(activeAccount, { to, subject, body, cc, bcc });
+    const savedEmail = saveSentEmail(activeAccount, { to, subject, body });
+    res.status(201).json({
+      message: '邮件发送成功',
+      provider: result.provider,
+      email: savedEmail,
+    });
+  } catch (err) {
+    console.error('发送邮件失败:', err.message);
+    res.status(500).json({ error: '发送邮件失败: ' + err.message });
+  }
 });
 
-// POST /api/emails/:id/reply - Reply to email
-router.post('/:id/reply', (req, res) => {
+// POST /api/emails/:id/reply - Reply to email (Resend 优先, SMTP 回退)
+router.post('/:id/reply', async (req, res) => {
   const activeAccount = getActiveAccount(req.user.id);
   if (!activeAccount) {
     return res.status(400).json({ error: 'No active email account configured.' });
-  }
-
-  if (!activeAccount.password) {
-    return res.status(400).json({ error: 'Account password is required for sending emails.' });
   }
 
   const originalEmail = db.prepare(
@@ -193,52 +243,35 @@ router.post('/:id/reply', (req, res) => {
     ? `Re: ${originalEmail.subject}`
     : originalEmail.subject;
 
-  const transporter = nodemailer.createTransport({
-    host: activeAccount.smtp_host,
-    port: activeAccount.smtp_port,
-    secure: activeAccount.smtp_secure === 1,
-    auth: {
-      user: activeAccount.email,
-      pass: activeAccount.password
-    }
-  });
+  try {
+    const result = await sendEmail(activeAccount, {
+      to: originalEmail.from_address,
+      subject: replySubject,
+      body,
+    });
 
-  const mailOptions = {
-    from: activeAccount.email,
-    to: originalEmail.from_address,
-    subject: replySubject,
-    text: body,
-    inReplyTo: originalEmail.message_id || undefined,
-    references: originalEmail.message_id || undefined
-  };
+    const savedEmail = saveSentEmail(activeAccount, {
+      to: originalEmail.from_address,
+      subject: replySubject,
+      body,
+    });
 
-  transporter.sendMail(mailOptions, (err) => {
-    if (err) {
-      console.error('Reply email error:', err.message);
-      return res.status(500).json({ error: 'Failed to send reply: ' + err.message });
-    }
-
-    // Save to sent folder
-    const result = db.prepare(
-      `INSERT INTO emails (account_id, from_address, to_address, subject, body, folder, is_read, received_at)
-       VALUES (?, ?, ?, ?, ?, 'sent', 1, datetime('now'))`
-    ).run(activeAccount.id, activeAccount.email, originalEmail.from_address, replySubject, body);
-
-    const savedEmail = db.prepare('SELECT * FROM emails WHERE id = ?').get(result.lastInsertRowid);
-
-    res.status(201).json({ message: 'Reply sent successfully.', email: savedEmail });
-  });
+    res.status(201).json({
+      message: '回复发送成功',
+      provider: result.provider,
+      email: savedEmail,
+    });
+  } catch (err) {
+    console.error('回复发送失败:', err.message);
+    res.status(500).json({ error: '回复发送失败: ' + err.message });
+  }
 });
 
-// POST /api/emails/:id/forward - Forward email
-router.post('/:id/forward', (req, res) => {
+// POST /api/emails/:id/forward - Forward email (Resend 优先, SMTP 回退)
+router.post('/:id/forward', async (req, res) => {
   const activeAccount = getActiveAccount(req.user.id);
   if (!activeAccount) {
     return res.status(400).json({ error: 'No active email account configured.' });
-  }
-
-  if (!activeAccount.password) {
-    return res.status(400).json({ error: 'Account password is required for sending emails.' });
   }
 
   const originalEmail = db.prepare(
@@ -258,39 +291,28 @@ router.post('/:id/forward', (req, res) => {
     ? `Fwd: ${originalEmail.subject}`
     : originalEmail.subject;
 
-  const transporter = nodemailer.createTransport({
-    host: activeAccount.smtp_host,
-    port: activeAccount.smtp_port,
-    secure: activeAccount.smtp_secure === 1,
-    auth: {
-      user: activeAccount.email,
-      pass: activeAccount.password
-    }
-  });
+  try {
+    const result = await sendEmail(activeAccount, {
+      to,
+      subject: forwardSubject,
+      body,
+    });
 
-  const mailOptions = {
-    from: activeAccount.email,
-    to,
-    subject: forwardSubject,
-    text: body
-  };
+    const savedEmail = saveSentEmail(activeAccount, {
+      to,
+      subject: forwardSubject,
+      body,
+    });
 
-  transporter.sendMail(mailOptions, (err) => {
-    if (err) {
-      console.error('Forward email error:', err.message);
-      return res.status(500).json({ error: 'Failed to forward email: ' + err.message });
-    }
-
-    // Save to sent folder
-    const result = db.prepare(
-      `INSERT INTO emails (account_id, from_address, to_address, subject, body, folder, is_read, received_at)
-       VALUES (?, ?, ?, ?, ?, 'sent', 1, datetime('now'))`
-    ).run(activeAccount.id, activeAccount.email, to, forwardSubject, body);
-
-    const savedEmail = db.prepare('SELECT * FROM emails WHERE id = ?').get(result.lastInsertRowid);
-
-    res.status(201).json({ message: 'Email forwarded successfully.', email: savedEmail });
-  });
+    res.status(201).json({
+      message: '转发发送成功',
+      provider: result.provider,
+      email: savedEmail,
+    });
+  } catch (err) {
+    console.error('转发发送失败:', err.message);
+    res.status(500).json({ error: '转发发送失败: ' + err.message });
+  }
 });
 
 // DELETE /api/emails/:id - Move to trash

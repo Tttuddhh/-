@@ -6,6 +6,7 @@ import { api } from '../api';
 import './AddAccountModal.css';
 
 function AddAccountModal({ onClose, onSuccess }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -14,6 +15,7 @@ function AddAccountModal({ onClose, onSuccess }) {
     smtp_host: '',
     smtp_port: '587',
     name: '',
+    resend_api_key: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -55,6 +57,7 @@ function AddAccountModal({ onClose, onSuccess }) {
         smtp_host: form.smtp_host.trim() || undefined,
         smtp_port: form.smtp_port ? parseInt(form.smtp_port, 10) : undefined,
         name: form.name.trim() || undefined,
+        resend_api_key: form.resend_api_key.trim() || undefined,
       });
       onSuccess();
     } catch (err) {
@@ -134,6 +137,34 @@ function AddAccountModal({ onClose, onSuccess }) {
                   onChange={handleChange('smtp_port')}
                 />
               </div>
+
+              <button
+                type="button"
+                className="modal__advanced-toggle"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                <Icon name={showAdvanced ? 'chevron-down' : 'chevron-right'} size={16} />
+                高级设置
+              </button>
+
+              {showAdvanced && (
+                <div className="modal__advanced">
+                  <div className="modal__advanced-hint">
+                    使用 Resend API 发送邮件，无需配置 SMTP 密码。在{' '}
+                    <a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer">
+                      resend.com/api-keys
+                    </a>{' '}
+                    获取 API Key。
+                  </div>
+                  <Input
+                    label="Resend API Key"
+                    type="password"
+                    placeholder="re_xxxxxxxxxxxxx"
+                    value={form.resend_api_key}
+                    onChange={handleChange('resend_api_key')}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
